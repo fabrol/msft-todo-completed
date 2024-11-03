@@ -101,29 +101,41 @@ const TodoTasksViewer = () => {
 
   const { instance, accounts } = useMsal();
 
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
+
   useEffect(() => {
-    async function login() {
+    async function authenticate() {
       if (accounts.length === 0 && !isAuthenticating) {
         setIsAuthenticating(true);
         try {
+          const dialogs = document.querySelectorAll('[role="dialog"]');
+          dialogs.forEach((dialog) => {
+            if (dialog instanceof HTMLElement) {
+              dialog.style.display = "none";
+            }
+          });
+
+          await new Promise((resolve) => setTimeout(resolve, 100));
+
           await instance.loginPopup(loginRequest);
+          setIsAuthenticated(true);
         } catch (e) {
           console.error("Login failed", e);
           setError("Login failed. Please try again.");
         } finally {
           setIsAuthenticating(false);
         }
+      } else if (accounts.length > 0) {
+        setIsAuthenticated(true);
       }
     }
-    login();
+    authenticate();
   }, [accounts, instance, isAuthenticating]);
 
   useEffect(() => {
-    async function loadTasks() {
-      if (accounts.length === 0 || isAuthenticating) {
-        return;
-      }
+    if (!isAuthenticated || isAuthenticating) return;
 
+    async function loadTasks() {
       try {
         setLoading(true);
         const accessToken = await getAccessToken();
@@ -140,7 +152,7 @@ const TodoTasksViewer = () => {
       }
     }
     loadTasks();
-  }, [accounts, isAuthenticating]);
+  }, [isAuthenticated, isAuthenticating]);
 
   const getDateRange = (date: Date, mode: ViewMode) => {
     switch (mode) {
