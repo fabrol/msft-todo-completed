@@ -15,17 +15,12 @@ import {
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from "@/components/ui/dialog";
+import { Dialog, DialogTrigger } from "@/components/ui/dialog";
 import { getAccessToken, fetchTasks } from "@/lib/todoApi";
 import { useMsal } from "@azure/msal-react";
 import { loginRequest } from "@/lib/msalConfig";
 import { TasksGraph } from "./TasksGraph";
+import { TaskDialog } from "@/components/TaskDialog";
 
 export type Task = {
   id: string;
@@ -66,19 +61,7 @@ const TaskList = ({ tasks, date }: { tasks: Task[]; date: Date }) => {
                   <span className="text-foreground">{task.title}</span>
                 </Button>
               </DialogTrigger>
-              <DialogContent className="sm:max-w-[425px]">
-                <DialogHeader>
-                  <DialogTitle>{task.title}</DialogTitle>
-                </DialogHeader>
-                <div className="mt-4">
-                  <p className="text-sm text-muted-foreground">
-                    Completed at: {format(task.completedAt!, "h:mm a")}
-                  </p>
-                  {task.description && (
-                    <p className="mt-2 text-foreground">{task.description}</p>
-                  )}
-                </div>
-              </DialogContent>
+              <TaskDialog task={task} />
             </Dialog>
           </li>
         ))}
@@ -343,24 +326,7 @@ const TodoTasksViewer = () => {
                         </CardContent>
                       </Card>
                     </DialogTrigger>
-                    <DialogContent className="sm:max-w-[425px]">
-                      <DialogHeader>
-                        <DialogTitle>
-                          {format(date, "EEEE, MMMM d, yyyy")}
-                        </DialogTitle>
-                      </DialogHeader>
-                      <div className="mt-4">
-                        <ul className="space-y-4">
-                          {tasksForDate.map((task) => (
-                            <TaskList
-                              key={task.id}
-                              date={date}
-                              tasks={tasksForDate}
-                            />
-                          ))}
-                        </ul>
-                      </div>
-                    </DialogContent>
+                    <TaskDialog date={date} tasks={tasksForDate} />
                   </Dialog>
                 );
               })}
