@@ -103,6 +103,8 @@ const TodoTasksViewer = () => {
 
   const [isAuthenticated, setIsAuthenticated] = useState(false);
 
+  const [loadedTaskCount, setLoadedTaskCount] = useState(0);
+
   useEffect(() => {
     async function authenticate() {
       if (accounts.length === 0 && !isAuthenticating) {
@@ -138,12 +140,15 @@ const TodoTasksViewer = () => {
     async function loadTasks() {
       try {
         setLoading(true);
+        setLoadedTaskCount(0);
         const accessToken = await getAccessToken();
         if (!accessToken) {
           setError("Failed to authenticate. Please try again.");
           return;
         }
-        const fetchedTasks = await fetchTasks(accessToken);
+        const fetchedTasks = await fetchTasks(accessToken, (count) => {
+          setLoadedTaskCount(count);
+        });
         setTasks(fetchedTasks);
       } catch (err) {
         setError(`Failed to load tasks. Please try again later. ${err}`);
@@ -213,8 +218,13 @@ const TodoTasksViewer = () => {
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center min-h-screen">
+      <div className="flex flex-col items-center justify-center min-h-screen gap-4">
         <p className="text-lg">Loading your tasks...</p>
+        {loadedTaskCount > 0 && (
+          <p className="text-sm text-muted-foreground">
+            Loaded {loadedTaskCount} tasks so far
+          </p>
+        )}
       </div>
     );
   }
