@@ -57,9 +57,11 @@ const TaskList = ({ tasks, date }: { tasks: Task[]; date: Date }) => {
               <DialogTrigger asChild>
                 <Button
                   variant="link"
-                  className="p-0 h-auto text-left normal-case hover:no-underline"
+                  className="p-0 h-auto text-left normal-case hover:no-underline max-w-full"
                 >
-                  <span className="text-foreground">{task.title}</span>
+                  <span className="text-foreground line-clamp-2 break-words">
+                    {task.title}
+                  </span>
                 </Button>
               </DialogTrigger>
               <TaskDialog task={task} />
@@ -219,26 +221,29 @@ const TodoTasksViewer = () => {
   }
 
   return (
-    <div className="container mx-auto p-4 max-w-full">
+    <div className="container mx-auto p-2 max-w-full">
       <Card className="w-full">
-        <CardHeader>
+        <CardHeader className="p-4">
           <div className="flex justify-between items-center">
-            <CardTitle className="text-2xl font-bold">
-              Completed Tasks
-            </CardTitle>
+            <CardTitle className="text-xl font-bold">Completed Tasks</CardTitle>
             <Button onClick={handleLogout} variant="outline" size="sm">
               Logout
             </Button>
           </div>
         </CardHeader>
-        <CardContent>
-          <div className="flex flex-col sm:flex-row justify-between items-center mb-4 space-y-4 sm:space-y-0">
+        <CardContent className="p-4 pt-0">
+          <div className="flex flex-col sm:flex-row justify-between items-center mb-2 space-y-2 sm:space-y-0">
             <div className="flex items-center space-x-2">
-              <Button onClick={handlePrevious} variant="outline" size="icon">
+              <Button
+                onClick={handlePrevious}
+                variant="outline"
+                size="icon"
+                className="h-8 w-8"
+              >
                 <ChevronLeft className="h-4 w-4" />
                 <span className="sr-only">Previous</span>
               </Button>
-              <span className="text-lg font-medium">
+              <span className="text-base font-medium">
                 {viewMode === "day" && format(currentDate, "MMMM d, yyyy")}
                 {viewMode === "week" &&
                   `Week of ${format(dateRange[0], "MMM d")} - ${format(
@@ -248,54 +253,59 @@ const TodoTasksViewer = () => {
                 {viewMode === "month" && format(currentDate, "MMMM yyyy")}
                 {viewMode === "year" && format(currentDate, "yyyy")}
               </span>
-              <Button onClick={handleNext} variant="outline" size="icon">
+              <Button
+                onClick={handleNext}
+                variant="outline"
+                size="icon"
+                className="h-8 w-8"
+              >
                 <ChevronRight className="h-4 w-4" />
                 <span className="sr-only">Next</span>
               </Button>
             </div>
-            <div className="flex items-center space-x-4">
-              <div className="inline-flex rounded-md border bg-muted p-1">
+            <div className="flex flex-col sm:flex-row items-center gap-2 sm:space-x-4 w-full sm:w-auto">
+              <div className="inline-flex rounded-md border bg-muted p-1 w-full sm:w-auto">
                 <Button
                   onClick={() => setViewMode("day")}
                   variant={viewMode === "day" ? "default" : "ghost"}
-                  className="rounded-sm px-3"
+                  className="rounded-sm flex-1 sm:flex-none px-3 text-xs sm:text-sm"
                 >
                   Day
                 </Button>
                 <Button
                   onClick={() => setViewMode("week")}
                   variant={viewMode === "week" ? "default" : "ghost"}
-                  className="rounded-sm px-3"
+                  className="rounded-sm flex-1 sm:flex-none px-3 text-xs sm:text-sm"
                 >
                   Week
                 </Button>
                 <Button
                   onClick={() => setViewMode("month")}
                   variant={viewMode === "month" ? "default" : "ghost"}
-                  className="rounded-sm px-3"
+                  className="rounded-sm flex-1 sm:flex-none px-3 text-xs sm:text-sm"
                 >
                   Month
                 </Button>
                 <Button
                   onClick={() => setViewMode("year")}
                   variant={viewMode === "year" ? "default" : "ghost"}
-                  className="rounded-sm px-3"
+                  className="rounded-sm flex-1 sm:flex-none px-3 text-xs sm:text-sm"
                 >
                   Year
                 </Button>
               </div>
-              <div className="inline-flex rounded-md border bg-muted p-1">
+              <div className="inline-flex rounded-md border bg-muted p-1 w-full sm:w-auto">
                 <Button
                   onClick={() => setViewType("calendar")}
                   variant={viewType === "calendar" ? "default" : "ghost"}
-                  className="rounded-sm px-3 w-[84px]"
+                  className="rounded-sm flex-1 sm:flex-none px-3 text-xs sm:text-sm"
                 >
                   Calendar
                 </Button>
                 <Button
                   onClick={() => setViewType("list")}
                   variant={viewType === "list" ? "default" : "ghost"}
-                  className="rounded-sm px-3 w-[84px]"
+                  className="rounded-sm flex-1 sm:flex-none px-3 text-xs sm:text-sm"
                 >
                   List
                 </Button>
@@ -340,12 +350,15 @@ const TodoTasksViewer = () => {
                         <CardContent>
                           <ul className="space-y-2">
                             {tasksForDate.slice(0, 4).map((task) => (
-                              <li key={task.id} className="flex items-center">
+                              <li
+                                key={task.id}
+                                className="flex items-start gap-2"
+                              >
                                 <span
-                                  className="w-2 h-2 rounded-full bg-green-500 mr-2"
+                                  className="w-2 h-2 rounded-full bg-green-500 mt-1.5 flex-shrink-0"
                                   aria-hidden="true"
                                 />
-                                <span className="text-sm truncate">
+                                <span className="text-sm line-clamp-2 break-words">
                                   {task.title}
                                 </span>
                               </li>

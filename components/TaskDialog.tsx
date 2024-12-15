@@ -21,12 +21,17 @@ export const TaskDialog = ({ task, date, tasks }: TaskDialogProps) => {
           <DialogTitle>{task.title}</DialogTitle>
         </DialogHeader>
         <div className="mt-4">
-          <p className="text-sm text-muted-foreground">
-            Completed at: {format(task.completedAt!, "h:mm a")}
-          </p>
-          {task.description && (
-            <p className="mt-2 text-foreground">{task.description}</p>
-          )}
+          <div>
+            <p className="text-foreground break-words">{task.title}</p>
+            <p className="text-sm text-muted-foreground">
+              Completed at: {format(task.completedAt!, "h:mm a")}
+            </p>
+            {task.description && (
+              <p className="mt-2 text-sm text-muted-foreground break-words">
+                {task.description}
+              </p>
+            )}
+          </div>
         </div>
       </DialogContent>
     );
@@ -48,15 +53,17 @@ export const TaskDialog = ({ task, date, tasks }: TaskDialogProps) => {
                   aria-hidden="true"
                 />
                 <div>
-                  <p className="text-foreground">{task.title}</p>
-                  <p className="text-sm text-muted-foreground">
-                    Completed at: {format(task.completedAt!, "h:mm a")}
-                  </p>
-                  {task.description && (
-                    <p className="mt-2 text-sm text-muted-foreground">
-                      {task.description}
+                  <div>
+                    <p className="text-foreground break-words">{task.title}</p>
+                    <p className="text-sm text-muted-foreground">
+                      Completed at: {format(task.completedAt!, "h:mm a")}
                     </p>
-                  )}
+                    {task.description && (
+                      <p className="mt-2 text-sm text-muted-foreground break-words">
+                        {task.description}
+                      </p>
+                    )}
+                  </div>
                 </div>
               </li>
             ))}

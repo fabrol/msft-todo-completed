@@ -67,16 +67,22 @@ export const TasksGraph = ({ tasks, dateRange, viewMode }: TasksGraphProps) => {
   return (
     <div className="w-full h-[200px] mt-4">
       <ResponsiveContainer width="100%" height="100%">
-        <BarChart data={data} barCategoryGap={2}>
+        <BarChart
+          data={data}
+          barCategoryGap={2}
+          margin={{ left: -10, right: 10 }}
+        >
           <CartesianGrid strokeDasharray="3 3" className="stroke-muted" />
           <XAxis
             dataKey="date"
             tickFormatter={(date) => getTickFormat(date)}
             className="text-xs text-muted-foreground"
+            tickMargin={8}
           />
           <YAxis
             allowDecimals={false}
             className="text-xs text-muted-foreground"
+            width={25}
           />
           <Tooltip
             content={({ active, payload }) => {
