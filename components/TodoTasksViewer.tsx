@@ -25,20 +25,19 @@ import {
 import { getAccessToken, fetchTasks } from "@/lib/todoApi";
 import { useMsal } from "@azure/msal-react";
 import { loginRequest } from "@/lib/msalConfig";
+import { TasksGraph } from "./TasksGraph";
 
 export type Task = {
   id: string;
   title: string;
-  completedAt: string | null;
+  completedAt: Date | null;
   description: string;
 };
 
 const sortTasksByDate = (tasks: Task[]) => {
   return tasks.sort((a, b) => {
     if (!a.completedAt || !b.completedAt) return 0;
-    return (
-      new Date(b.completedAt).getTime() - new Date(a.completedAt).getTime()
-    );
+    return b.completedAt.getTime() - a.completedAt.getTime();
   });
 };
 
@@ -73,8 +72,7 @@ const TaskList = ({ tasks, date }: { tasks: Task[]; date: Date }) => {
                 </DialogHeader>
                 <div className="mt-4">
                   <p className="text-sm text-muted-foreground">
-                    Completed at:{" "}
-                    {format(new Date(task.completedAt!), "h:mm a")}
+                    Completed at: {format(task.completedAt!, "h:mm a")}
                   </p>
                   {task.description && (
                     <p className="mt-2 text-foreground">{task.description}</p>
@@ -177,22 +175,10 @@ const TodoTasksViewer = () => {
   const dateRange = getDateRange(currentDate, viewMode);
 
   const getTasksForDate = (date: Date) => {
-    const filteredTasks = tasks.filter((task) => {
+    return tasks.filter((task) => {
       if (!task.completedAt) return false;
-      try {
-        const taskDate = new Date(task.completedAt);
-        if (isNaN(taskDate.getTime())) {
-          console.error("Invalid date for task:", task);
-          return false;
-        }
-        const isSameDate = taskDate.toDateString() === date.toDateString();
-        return isSameDate;
-      } catch (error) {
-        console.error("Error parsing date for task:", task, error);
-        return false;
-      }
+      return task.completedAt.toDateString() === date.toDateString();
     });
-    return filteredTasks;
   };
 
   const handlePrevious = () => {
@@ -380,14 +366,17 @@ const TodoTasksViewer = () => {
               })}
             </div>
           ) : (
-            <div className="space-y-2">
-              {dateRange.map((date) => (
-                <TaskList
-                  key={date.toISOString()}
-                  date={date}
-                  tasks={getTasksForDate(date)}
-                />
-              ))}
+            <div className="space-y-4">
+              <TasksGraph tasks={tasks} dateRange={dateRange} />
+              <div className="space-y-2">
+                {dateRange.map((date) => (
+                  <TaskList
+                    key={date.toISOString()}
+                    date={date}
+                    tasks={getTasksForDate(date)}
+                  />
+                ))}
+              </div>
             </div>
           )}
         </CardContent>

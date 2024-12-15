@@ -117,7 +117,9 @@ export async function fetchTasks(
           .map((task: TodoTask) => ({
             id: task.id,
             title: task.title,
-            completedAt: task.completedDateTime?.dateTime || "",
+            completedAt: task.completedDateTime
+              ? new Date(task.completedDateTime.dateTime)
+              : null,
             description: task.body?.content || "",
           }));
 
