@@ -210,7 +210,24 @@ const TodoTasksViewer = () => {
     <div className="container mx-auto p-4 max-w-full">
       <Card className="w-full">
         <CardHeader>
-          <CardTitle className="text-2xl font-bold">Completed Tasks</CardTitle>
+          <div className="flex justify-between items-center">
+            <CardTitle className="text-2xl font-bold">
+              Completed Tasks
+            </CardTitle>
+            <Button
+              onClick={() => {
+                instance.logoutPopup({
+                  postLogoutRedirectUri: "/",
+                });
+                setIsAuthenticated(false);
+                setTasks([]);
+              }}
+              variant="outline"
+              size="sm"
+            >
+              Logout
+            </Button>
+          </div>
         </CardHeader>
         <CardContent>
           <div className="flex flex-col sm:flex-row justify-between items-center mb-4 space-y-4 sm:space-y-0">
