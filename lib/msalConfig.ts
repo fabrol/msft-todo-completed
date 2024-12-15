@@ -2,7 +2,7 @@
 
 import {
   Configuration,
-  PopupRequest,
+  RedirectRequest,
   PublicClientApplication,
 } from "@azure/msal-browser";
 
@@ -14,14 +14,14 @@ export const msalConfig: Configuration = {
   },
   cache: {
     cacheLocation: "sessionStorage",
-    storeAuthStateInCookie: false,
+    storeAuthStateInCookie: true,
   },
 };
 
 export const msalInstance = new PublicClientApplication(msalConfig);
 await msalInstance.initialize();
 
-export const loginRequest: PopupRequest = {
+export const loginRequest: RedirectRequest = {
   scopes: ["User.Read", "Tasks.Read"],
 };
 

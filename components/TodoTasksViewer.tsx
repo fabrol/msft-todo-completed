@@ -17,10 +17,11 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Dialog, DialogTrigger } from "@/components/ui/dialog";
 import { getAccessToken, fetchTasks } from "@/lib/todoApi";
-import { useMsal } from "@azure/msal-react";
+import { useMsal, useIsAuthenticated } from "@azure/msal-react";
 import { loginRequest } from "@/lib/msalConfig";
 import { TasksGraph } from "./TasksGraph";
 import { TaskDialog } from "@/components/TaskDialog";
+import { InteractionStatus } from "@azure/msal-browser";
 
 export type Task = {
   id: string;
@@ -77,46 +78,29 @@ const TodoTasksViewer = () => {
   const [tasks, setTasks] = useState<Task[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [isAuthenticating, setIsAuthenticating] = useState(false);
   const [viewType, setViewType] = useState<ViewType>("calendar");
 
-  const { instance, accounts } = useMsal();
-
-  const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const { instance, inProgress } = useMsal();
+  const isAuthenticated = useIsAuthenticated();
 
   const [loadedTaskCount, setLoadedTaskCount] = useState(0);
 
   useEffect(() => {
-    async function authenticate() {
-      if (accounts.length === 0 && !isAuthenticating) {
-        setIsAuthenticating(true);
+    async function handleLogin() {
+      if (!isAuthenticated && inProgress === InteractionStatus.None) {
         try {
-          const dialogs = document.querySelectorAll('[role="dialog"]');
-          dialogs.forEach((dialog) => {
-            if (dialog instanceof HTMLElement) {
-              dialog.style.display = "none";
-            }
-          });
-
-          await new Promise((resolve) => setTimeout(resolve, 100));
-
-          await instance.loginPopup(loginRequest);
-          setIsAuthenticated(true);
+          await instance.loginRedirect(loginRequest);
         } catch (e) {
           console.error("Login failed", e);
           setError("Login failed. Please try again.");
-        } finally {
-          setIsAuthenticating(false);
         }
-      } else if (accounts.length > 0) {
-        setIsAuthenticated(true);
       }
     }
-    authenticate();
-  }, [accounts, instance, isAuthenticating]);
+    handleLogin();
+  }, [isAuthenticated, inProgress, instance]);
 
   useEffect(() => {
-    if (!isAuthenticated || isAuthenticating) return;
+    if (!isAuthenticated || inProgress === InteractionStatus.Login) return;
 
     async function loadTasks() {
       try {
@@ -138,7 +122,7 @@ const TodoTasksViewer = () => {
       }
     }
     loadTasks();
-  }, [isAuthenticated, isAuthenticating]);
+  }, [isAuthenticated, inProgress, instance]);
 
   const getDateRange = (date: Date, mode: ViewMode) => {
     switch (mode) {
@@ -153,7 +137,6 @@ const TodoTasksViewer = () => {
           addDays(monthStart, i)
         ).filter((d) => d.getMonth() === monthStart.getMonth());
       case "year":
-        const yearStart = new Date(date.getFullYear(), 0, 1);
         return Array.from(
           { length: 12 },
           (_, i) => new Date(date.getFullYear(), i, 1)
@@ -199,6 +182,21 @@ const TodoTasksViewer = () => {
     0
   );
 
+  const handleLogout = () => {
+    instance.logoutRedirect({
+      postLogoutRedirectUri: "/",
+    });
+    setTasks([]);
+  };
+
+  if (inProgress === InteractionStatus.Login) {
+    return <div>Signing in...</div>;
+  }
+
+  if (inProgress === InteractionStatus.Logout) {
+    return <div>Signing out...</div>;
+  }
+
   if (loading) {
     return (
       <div className="flex flex-col items-center justify-center min-h-screen gap-4">
@@ -228,17 +226,7 @@ const TodoTasksViewer = () => {
             <CardTitle className="text-2xl font-bold">
               Completed Tasks
             </CardTitle>
-            <Button
-              onClick={() => {
-                instance.logoutPopup({
-                  postLogoutRedirectUri: "/",
-                });
-                setIsAuthenticated(false);
-                setTasks([]);
-              }}
-              variant="outline"
-              size="sm"
-            >
+            <Button onClick={handleLogout} variant="outline" size="sm">
               Logout
             </Button>
           </div>
