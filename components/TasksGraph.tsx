@@ -1,6 +1,6 @@
 import {
-  AreaChart,
-  Area,
+  BarChart,
+  Bar,
   XAxis,
   YAxis,
   CartesianGrid,
@@ -9,16 +9,26 @@ import {
 } from "recharts";
 import { format } from "date-fns";
 import { Task } from "./TodoTasksViewer";
+import { ViewMode } from "./TodoTasksViewer";
 
 interface TasksGraphProps {
   tasks: Task[];
   dateRange: Date[];
+  viewMode: ViewMode;
 }
 
-export const TasksGraph = ({ tasks, dateRange }: TasksGraphProps) => {
+export const TasksGraph = ({ tasks, dateRange, viewMode }: TasksGraphProps) => {
   const data = dateRange.map((date) => {
     const tasksForDate = tasks.filter((task) => {
       if (!task.completedAt) return false;
+
+      if (viewMode === "year") {
+        return (
+          task.completedAt.getMonth() === date.getMonth() &&
+          task.completedAt.getFullYear() === date.getFullYear()
+        );
+      }
+
       return task.completedAt.toDateString() === date.toDateString();
     });
 
@@ -28,28 +38,40 @@ export const TasksGraph = ({ tasks, dateRange }: TasksGraphProps) => {
     };
   });
 
+  const getTickFormat = (date: Date) => {
+    switch (viewMode) {
+      case "day":
+        return format(date, "h:mm a");
+      case "week":
+        return format(date, "EEE");
+      case "month":
+        return format(date, "d");
+      case "year":
+        return format(date, "MMM");
+      default:
+        return format(date, "MMM d");
+    }
+  };
+
+  const getTooltipFormat = (date: Date) => {
+    switch (viewMode) {
+      case "day":
+        return format(date, "h:mm a");
+      case "year":
+        return format(date, "MMMM yyyy");
+      default:
+        return format(date, "MMMM d, yyyy");
+    }
+  };
+
   return (
     <div className="w-full h-[200px] mt-4">
       <ResponsiveContainer width="100%" height="100%">
-        <AreaChart data={data}>
-          <defs>
-            <linearGradient id="colorCount" x1="0" y1="0" x2="0" y2="1">
-              <stop
-                offset="5%"
-                stopColor="hsl(var(--primary))"
-                stopOpacity={0.8}
-              />
-              <stop
-                offset="95%"
-                stopColor="hsl(var(--primary))"
-                stopOpacity={0}
-              />
-            </linearGradient>
-          </defs>
+        <BarChart data={data} barCategoryGap={2}>
           <CartesianGrid strokeDasharray="3 3" className="stroke-muted" />
           <XAxis
             dataKey="date"
-            tickFormatter={(date) => format(date, "MMM d")}
+            tickFormatter={(date) => getTickFormat(date)}
             className="text-xs text-muted-foreground"
           />
           <YAxis
@@ -63,7 +85,7 @@ export const TasksGraph = ({ tasks, dateRange }: TasksGraphProps) => {
               return (
                 <div className="rounded-lg border bg-background p-2 shadow-sm">
                   <p className="text-sm font-medium">
-                    {format(data.date, "MMMM d, yyyy")}
+                    {getTooltipFormat(data.date)}
                   </p>
                   <p className="text-sm text-muted-foreground">
                     {data.count} tasks
@@ -72,14 +94,13 @@ export const TasksGraph = ({ tasks, dateRange }: TasksGraphProps) => {
               );
             }}
           />
-          <Area
-            type="monotone"
+          <Bar
             dataKey="count"
-            stroke="hsl(var(--primary))"
-            fillOpacity={1}
-            fill="url(#colorCount)"
+            fill="hsl(var(--primary)/0.3)"
+            radius={[4, 4, 0, 0]}
+            className="hover:fill-[hsl(var(--primary)/0.5)] transition-[fill]"
           />
-        </AreaChart>
+        </BarChart>
       </ResponsiveContainer>
     </div>
   );

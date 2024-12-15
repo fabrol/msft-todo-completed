@@ -36,7 +36,7 @@ const sortTasksByDate = (tasks: Task[]) => {
   });
 };
 
-export type ViewMode = "day" | "week" | "month";
+export type ViewMode = "day" | "week" | "month" | "year";
 const TaskList = ({ tasks, date }: { tasks: Task[]; date: Date }) => {
   if (tasks.length === 0) return null;
 
@@ -152,6 +152,12 @@ const TodoTasksViewer = () => {
         return Array.from({ length: 31 }, (_, i) =>
           addDays(monthStart, i)
         ).filter((d) => d.getMonth() === monthStart.getMonth());
+      case "year":
+        const yearStart = new Date(date.getFullYear(), 0, 1);
+        return Array.from(
+          { length: 12 },
+          (_, i) => new Date(date.getFullYear(), i, 1)
+        );
     }
   };
 
@@ -160,6 +166,12 @@ const TodoTasksViewer = () => {
   const getTasksForDate = (date: Date) => {
     return tasks.filter((task) => {
       if (!task.completedAt) return false;
+      if (viewMode === "year") {
+        return (
+          task.completedAt.getMonth() === date.getMonth() &&
+          task.completedAt.getFullYear() === date.getFullYear()
+        );
+      }
       return task.completedAt.toDateString() === date.toDateString();
     });
   };
@@ -168,7 +180,8 @@ const TodoTasksViewer = () => {
     setCurrentDate((prevDate) => {
       if (viewMode === "day") return subDays(prevDate, 1);
       if (viewMode === "week") return subWeeks(prevDate, 1);
-      return subMonths(prevDate, 1);
+      if (viewMode === "month") return subMonths(prevDate, 1);
+      return new Date(prevDate.getFullYear() - 1, prevDate.getMonth(), 1);
     });
   };
 
@@ -176,7 +189,8 @@ const TodoTasksViewer = () => {
     setCurrentDate((prevDate) => {
       if (viewMode === "day") return addDays(prevDate, 1);
       if (viewMode === "week") return addWeeks(prevDate, 1);
-      return addMonths(prevDate, 1);
+      if (viewMode === "month") return addMonths(prevDate, 1);
+      return new Date(prevDate.getFullYear() + 1, prevDate.getMonth(), 1);
     });
   };
 
@@ -244,6 +258,7 @@ const TodoTasksViewer = () => {
                     "MMM d, yyyy"
                   )}`}
                 {viewMode === "month" && format(currentDate, "MMMM yyyy")}
+                {viewMode === "year" && format(currentDate, "yyyy")}
               </span>
               <Button onClick={handleNext} variant="outline" size="icon">
                 <ChevronRight className="h-4 w-4" />
@@ -272,6 +287,13 @@ const TodoTasksViewer = () => {
                   className="rounded-sm px-3"
                 >
                   Month
+                </Button>
+                <Button
+                  onClick={() => setViewMode("year")}
+                  variant={viewMode === "year" ? "default" : "ghost"}
+                  className="rounded-sm px-3"
+                >
+                  Year
                 </Button>
               </div>
               <div className="inline-flex rounded-md border bg-muted p-1">
@@ -304,7 +326,9 @@ const TodoTasksViewer = () => {
                   ? "grid-cols-1"
                   : viewMode === "week"
                   ? "grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-7"
-                  : "grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-7"
+                  : viewMode === "month"
+                  ? "grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-7"
+                  : "grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4"
               }`}
             >
               {dateRange.map((date) => {
@@ -315,7 +339,11 @@ const TodoTasksViewer = () => {
                       <Card className="h-full cursor-pointer hover:bg-muted/50 transition-colors">
                         <CardHeader>
                           <CardTitle className="text-lg flex justify-between items-center">
-                            <span>{format(date, "EEE, MMM d")}</span>
+                            <span>
+                              {viewMode === "year"
+                                ? format(date, "MMMM")
+                                : format(date, "EEE, MMM d")}
+                            </span>
                             <span className="text-sm font-normal text-gray-500">
                               {tasksForDate.length} tasks
                             </span>
@@ -350,7 +378,11 @@ const TodoTasksViewer = () => {
             </div>
           ) : (
             <div className="space-y-4">
-              <TasksGraph tasks={tasks} dateRange={dateRange} />
+              <TasksGraph
+                tasks={tasks}
+                dateRange={dateRange}
+                viewMode={viewMode}
+              />
               <div className="space-y-2">
                 {dateRange.map((date) => (
                   <TaskList
